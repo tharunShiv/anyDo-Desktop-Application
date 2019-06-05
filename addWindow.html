@@ -19,5 +19,22 @@
         </button>
       </form>
     </div>
+
+    <script>
+      const electron = require("electron");
+      const { ipcRenderer } = electron;
+
+      const form = document.querySelector("form");
+      form.addEventListener("submit", submitForm);
+
+      function submitForm(e) {
+        e.preventDefault();
+        const item = document.querySelector("#item").value;
+
+        // ipcRenderer is used to send the data to the main renderer
+        // ipcRenderer.send(name, data)
+        ipcRenderer.send("item:add", item);
+      }
+    </script>
   </body>
 </html>

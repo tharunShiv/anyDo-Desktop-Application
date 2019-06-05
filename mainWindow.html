@@ -19,5 +19,40 @@
     </nav>
 
     <div class="container"><ul></ul></div>
+
+    <script>
+      const electron = require("electron");
+      const { ipcRenderer } = electron;
+      const ul = document.querySelector("ul");
+
+      // catch the item:add
+
+      ipcRenderer.on("item:add", function(e, item) {
+        ul.className = "collection";
+        // we want to add the item as li
+        const li = document.createElement("li");
+        li.className = "collection-item";
+        const itemText = document.createTextNode(item);
+        li.appendChild(itemText);
+        ul.appendChild(li);
+      });
+
+      ipcRenderer.on("item:clear", function() {
+        // we want to clear the ul
+        ul.innerHTML = "";
+
+        ul.className = "";
+      });
+
+      // remove item
+      ul.addEventListener("dblclick", removeItem);
+
+      function removeItem(e) {
+        e.target.remove();
+        if (ul.children.length == 0) {
+          ul.className = "";
+        }
+      }
+    </script>
   </body>
 </html>

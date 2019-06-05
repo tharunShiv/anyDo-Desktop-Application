@@ -2,7 +2,28 @@ const electron = require("electron");
 const url = require("url");
 const path = require("path");
 
-const { app, BrowserWindow, Menu } = electron;
+const { app, BrowserWindow, Menu, ipcMain } = electron;
+
+/**
+ *
+ * To set environment to production
+ *
+ * process.env.NODE_ENV = 'production'
+ */
+
+/**
+ * To publish the electron app
+ *
+ * INstall electron-packager
+ * https://www.christianengvall.se/electron-packager-tutorial/
+ * 
+ * step 1: install the packager
+ *      npm install --save-dev electron-packager
+ * 
+ * paste the scripts into the package.json
+ * 
+ * npm run package-win
+ */
 
 let mainWindow;
 let addWindow;
@@ -11,17 +32,19 @@ let addWindow;
 // listen for the app to be ready
 app.on("ready", function() {
   // create new window
-  mainWindow = new BrowserWindow({});
+  mainWindow = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true
+    }
+  });
 
   //load teh html into window
-  mainWindow.loadURL(
-    url.format({
+  mainWindow.loadFile("mainWindow.html");
+  /**url.format({
       pathname: path.join(__dirname, "mainWindow.html"),
       protocol: "file:",
       slashes: true
-    })
-  );
-
+    }) */
   // quit app when clised
   mainWindow.on("closed", function() {
     app.quit();
@@ -39,17 +62,20 @@ function createAddWindow() {
   addWindow = new BrowserWindow({
     width: 300,
     height: 200,
-    title: "Add ToDo tasks"
+    title: "Add ToDo tasks",
+    webPreferences: {
+      nodeIntegration: true
+    }
   });
 
   //load teh html into window
-  addWindow.loadURL(
-    url.format({
+  addWindow.loadFile("addWindow.html");
+
+  /**url.format({
       pathname: path.join(__dirname, "addWindow.html"),
       protocol: "file:",
       slashes: true
-    })
-  );
+    }) */
 
   // when we close the addWindow, we want to set it to null
   // to optimize memory usage
@@ -57,6 +83,14 @@ function createAddWindow() {
     addWindow = null;
   });
 }
+
+// catch item:add
+ipcMain.on("item:add", function(e, item) {
+  console.log(item);
+  // send it to the main window
+  mainWindow.webContents.send("item:add", item);
+  addWindow.close();
+});
 
 // replacing the default menu with our own
 // menu is just an array of objects
@@ -77,7 +111,10 @@ const mainMenuTemplate = [
         }
       },
       {
-        label: "Clear Tasks"
+        label: "Clear Tasks",
+        click() {
+          mainWindow.webContents.send("item:clear");
+        }
       },
       {
         label: "Quit",
